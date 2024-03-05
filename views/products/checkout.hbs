@@ -1,0 +1,252 @@
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+</head>
+ <style>
+.form-control{
+  font-size: 1.6rem;
+}
+#addressForm {
+      display: none;
+    }
+.size{
+font-size: 1.6rem;
+    }
+
+.dropdown-item{
+  width: auto;
+  font-size: 1.5rem;
+}
+.text-danger{
+  font-size: 1.6rem;
+}
+ </style>
+ <body>
+ <!-- 
+  <section class="checkout_area section_padding">-->
+          <div class="container">
+            <div class="billing_details">
+              <div class="row">
+                <div class="col-lg-8">
+                  <h3>Billing Details</h3>
+                
+                    <div class="dropdown show">
+                    <a style="margin-bottom: 20px; font-size:1.5rem;" class="btn_3 dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                     Select Address
+                    </a>
+                    
+                     <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                    <a class="dropdown-item" href="/showaddress?type=home">Home</a>
+                    <a class="dropdown-item" href="/showaddress?type=work">Work</a>
+                    </div>
+                  </div>
+
+                  <form class="row contact_form" action="/postcheckout" id="checkoutForm" method="post" >
+                   <div class="col-md-6 form-group p_star">
+                      <label for="" class="size">First name</label><br>
+                      <input type="text" class="form-control form-control-lg" id="" value="{{addr.fname}}" name="fname" />
+                      {{#if err.fname.path}} <span class="text-danger">{{err.fname.msg}}</span> {{/if}}
+                    </div>
+                    <div class="col-md-6 form-group p_star">
+                      <label for="" class="size">Second name</label><br>
+                      <input type="text" class="form-control form-control-lg" id="" value="{{addr.sname}}" name="sname" />
+                      {{#if err.sname.path}} <span class="text-danger">{{err.sname.msg}}</span> {{/if}}
+                    </div>
+                    <div class="col-md-12 form-group p_star">
+                      <label for="" class="size">Address line</label><br>
+                      <input type="text" class="form-control form-control-lg" id="add2" value="{{addr.address}}" name="address" />
+                      {{#if err.address.path}} <span class="text-danger">{{err.address.msg}}</span> {{/if}}
+                    </div>
+                    <div class="col-md-12 form-group p_star">
+                      <label for="" class="size">Locality</label><br>
+                      <input type="text" class="form-control form-control-lg" id="city" value="{{addr.locality}}" name="locality" />
+                      {{#if err.locality.path}} <span class="text-danger">{{err.locality.msg}}</span> {{/if}}
+                    </div>
+                    <div class="col-md-12 form-group p_star">
+                      <label for="" class="size">District</label><br>
+                      <input type="text" class="form-control form-control-lg" id="" value="{{addr.district}}" name="district" />
+                     {{#if err.district.path}} <span class="text-danger">{{err.district.msg}}</span> {{/if}}
+                    </div>
+                   
+                    <div class="col-md-12 form-group">
+                      <label for="" class="size">Pincode</label><br>
+                      <input type="text" class="form-control form-control-lg" id="zip" value="{{addr.pincode}}" name="pincode" placeholder="Postcode/ZIP" />
+                      {{#if err.pincode.path}} <span class="text-danger">{{err.pincode.msg}}</span> {{/if}}
+                    </div>
+                    <div class="col-md-6 form-group p_star">
+                      <label for="" class="size">Mobile number</label><br>
+                      <input type="text" class="form-control form-control-lg" id="number" value="{{addr.mobilenumber}}" name="mobilenumber" />
+                      {{#if err.mobilenumber.path}} <span class="text-danger">{{err.mobilenumber.msg}}</span> {{/if}}
+                    </div>
+                    <div class="col-md-6 form-group p_star">
+                      <label for="" class="size">Email</label><br>
+                      <input type="text" class="form-control form-control-lg" id="email" value="{{addr.email}}" name="email" />
+                     {{#if err.email.path}} <span class="text-danger">{{err.email.msg}}</span> {{/if}}
+                    </div>
+             
+                    <div class="col-md-12 form-group"> 
+                      <div class="order_box">
+                      {{!-- <div class="creat_account"> --}}
+                        <h3>Payment Options</h3>
+                        {{#if error}} <span class="text-danger">{{error}}</span> {{/if}}
+                        <hr>
+                      <div style="display: flex; justify-content:space-around; font-size:1.6rem">
+                      <label for="cashondelivery"><input type="radio" id="cashondelivery" name="paymentOption" value="COD" /> Cash On Delivery</label>
+                      <label for="wallet"><input type="radio" id="creditcard" name="paymentOption" value="Wallet" /> wallet </label>
+                      <label for="onlinepayment"><input type="radio" id="razorpay" name="paymentOption" value="Razorpay" /> Online Payment</label>
+                      <div style="display: flex; justify-content: center; margin-top: 20px;">
+      
+                      </div>
+                        </div>
+                      </div>
+                      <div style="display: flex; justify-content: center; margin-top: 20px;">
+                     <input type="hidden" name="appliedCoupons" id="appliedCoupons">
+                      <button class="btn_3" type="button" onclick="submitOrder()">Place Order</button>
+                    </div>
+                      </div>
+                  
+                  
+                </div>
+
+                <div class="col-lg-4">
+                  <div class="order_box">
+                    <h2>Your Order</h2>
+                    <ul class="list">
+                      <li>
+                        <a href="#">Product
+                          <span>Total</span>
+                        </a>
+                      </li>
+                      {{#each cartData}}
+                      <li>
+                       <a href="/productdetails/{{this.proId}}"><img src="/images/products/{{this.product.image}}" style="width: 50px;height:50px;">
+                        {{this.product.productname}} x {{quantity}}</a>
+            
+                        </a>
+                      </li>
+                      {{/each}}
+                      
+                    <ul class="list list_2">
+                      <li>
+                        <a href="#">subtotal
+                          <span>{{subtotal}}</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a href="#">Shipping
+                          <span>Free</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a href="#">Discount
+                          <span>{{discount}}</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a href="#">Total
+                          <span id="total">{{total}}</span>
+                        </a>
+                      </li> 
+                       <div class="cupon_area">
+              <div class="check_title">
+                <h2>
+                  Available coupon?
+                </h2>
+              </div>
+              {{#each coupons}}
+              
+            <div style="width: 100%;display: flex;margin-top: 5px;" id='{{this._id}}'>
+
+                  <input type="text" disabled value="{{this.code}}" style="background-color: white;font-size: 1.6rem; margin: 0px;border-radius: 5px;box-shadow: 1px 1px 5px black;" id="couponCode">
+                  <a class="btn" onclick="applyCoupon('{{this.discount}}','{{this._id}}')" style=" border-radius: 5px;margin-left: 10px;padding: 20px 28px;">Apply</a>
+            </div>
+              {{/each}}
+            </div> 
+                    </ul>
+                    </ul>
+                  </div>
+                  </div>
+                  
+                  </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+    
+
+ <script>
+    
+    document.getElementById('showaddressform').addEventListener('change', function() {
+      var addressForm = document.getElementById('addressForm');
+      addressForm.style.display = this.checked ? 'block' : 'none';
+    }); 
+
+    function submitOrder() {
+    console.log('submitOrder function called');
+
+    const selectedPaymentOption = document.querySelector('input[name="paymentOption"]:checked');
+    const form = document.querySelector('#checkoutForm');
+
+    const requiredFields = ['fname', 'sname', 'address', 'locality', 'district', 'pincode', 'mobilenumber', 'email'];
+    for (const field of requiredFields) {
+        const value = form.querySelector(`[name="${field}"]`).value.trim();
+        if (value === '') {
+           Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Please fill in all the form fields',
+            });
+            return;
+
+        }
+    }
+
+    if (!selectedPaymentOption) {
+       Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Please select a payment option',
+        });
+        return;
+    }
+
+    document.getElementById("appliedCoupons").value = JSON.stringify(getAppliedCoupons());
+    
+    console.log('Form submitted successfully!');
+
+    form.submit();
+    }
+
+  </script> 
+
+  <script>
+let appliedCoupons = [];
+function applyCoupon(discount,id){
+  const total =parseInt( document.getElementById("total").innerHTML)
+
+      const dis = parseInt(discount);
+      console.log(id) 
+      const discountedPrice = (total*dis)/100; 
+    document.getElementById(id).style.display = 'none'
+    document.getElementById("total").innerHTML = total - discountedPrice ;
+    {{!-- document.getElementById('discount').value = discountedPrice;
+    document.getElementById('cid').value = id; --}}
+    appliedCoupons.push({
+    id: id,
+    discount: discountedPrice
+  });
+  fetch(`http://localhost:3000/applyCoupon?couponId=${id}`).then((date)=>{
+
+    return date.json()
+  }).then((result)=>{
+  })
+     
+
+    }
+
+  function getAppliedCoupons() {
+    return appliedCoupons;
+}
+  </script> 
+ </body>
