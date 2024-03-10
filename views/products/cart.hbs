@@ -170,9 +170,9 @@ body {
 
         				<div class="container" style="display: flex;"> 
 						<p style="color: black;" class="unit" >Quantity: </p>
-						<a href="/cartChangeQuantity?id={{this.product._id}}&&count=-1" class="btn" >-</a>
+						<a href="#" class="btn" onclick="updateCartQuantity('{{this.product._id}}', -1);return false;">-</a>
 						<input style="width: 50px; text-align:center; font-size:2rem;" name="" class="" id="{{this.product._id}}" value="{{quantity}}" >
-						<a href="/cartChangeQuantity?id={{this.product._id}}&&count=1" class="btn" >+</a> </div>
+						<a href="#" class="btn" onclick="updateCartQuantity('{{this.product._id}}', 1); return false;">+</a> </div>
 						<p class="btn-area"><a aria-hidden="true" class="fa fa-trash" href="/deleteCart/{{this.product._id}}" onclick="confirmDelete('{{this.product._id}}', event)">Remove</a></p>
 					</div>
 				</div>
@@ -180,16 +180,14 @@ body {
 						{{#if Error}} <h3 style="font-size: 1.7rem;text-align: center;color: red;"><strong> {{Error}}</strong> </h3> {{/if}}
 				
 			</div>
-			
-			<div class="right-bar">
-				<p><span>Subtotal</span> <span>{{subtotal}}</span></p>
-				<hr>
-				<p><span>Discount</span> <span>{{discount}}</span></p>
-				<hr>
-				<p><span>Shipping</span> <span>free</span></p>
-				<hr>
-				<p><span>Total</span> <span>{{total}}</span></p><a href="/checkout"><i class="fa fa-shopping-cart"></i>Checkout</a>
-			</div>
+			 <div class="right-bar">
+        		<p><span>Subtotal</span> <span id="subtotal">{{subtotal}}</span></p>
+        		<hr>
+        		<p><span>Discount</span> <span id="discount">{{discount}}</span></p>
+        		<hr>
+        		<p><span>Total</span> <span id="total">{{total}}</span></p>
+        		<a href="/checkout" ><i class="fa fa-shopping-cart"></i>Checkout</a>
+      		</div>
 			
 		</div>
 	</div>
@@ -217,9 +215,59 @@ body {
 
     }
 </script>
-<script>
-	 
 
+<script>
+	async function updateCartQuantity(itemId, count) {
+      try {
+		console.log('fetch called')
+        const response = await fetch(`/cartChangeQuantity?id=${itemId}&count=${count}`);
+		 if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+		console.log(data);
+		 if (data.success) {
+        
+			const quantityElement = document.getElementById(itemId);
+			console.log('item',quantityElement.value)
+        	const subtotalElement = document.getElementById('subtotal');
+        	const discountElement = document.getElementById('discount');
+        	const totalElement = document.getElementById('total');
+		
+			const updatedCartData = data.cartData;
+			updatedCartData.forEach((item) => {
+    		const quantityElement = document.getElementById(item.proId);
+    			if (quantityElement) {
+					console.log(item.quantity)
+        			quantityElement.value = item.quantity;
+    			}
+			});
+
+		  	if (subtotalElement) {
+            subtotalElement.textContent = data.subtotal;
+        	}
+
+        	if (discountElement) {
+            discountElement.textContent = data.discount;
+        	}
+
+        	if (totalElement) {
+            totalElement.textContent = data.total;
+        	}
+           
+        	} else {
+            
+            	Swal.fire({
+                	title: 'Error!',
+                	text: data.message,
+                	icon: 'error',
+            	});
+       		 }
+        
+		 } catch (error) {
+        console.error('Error updating cart quantity:', error);
+		 }
+}
 </script>
 
 </body>

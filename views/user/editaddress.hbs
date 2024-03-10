@@ -180,6 +180,7 @@ h1 {
     <div class="form-group col-md-6">
       <label for="" class="size">Alternate number</label><br>
       <input type="Number" class="form-control form-control-lg" id="inputNumber" value="{{data.phone}}"  name="phone">
+      {{#if err.phone.path}} <span class="text-danger">{{err.phone.msg}}</span> {{/if}}
     </div>
   </div>
   <br>
@@ -207,12 +208,7 @@ h1 {
 </div>
 
 
-{{!-- <script>
-    function showEditForm() {
-      
-        var formContainer = document.getElementById("editFormContainer");
-        formContainer.style.display = "block";
-    } --}}
+
     
 </script>
 </body>

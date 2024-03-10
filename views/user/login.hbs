@@ -1,3 +1,11 @@
+<head>
+<!-- Include SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+<!-- Include SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+</head>
 <style>
     .error-message{
         color: red;
@@ -17,7 +25,7 @@
 
   <div class="container w-25 border py-5" id="container" style=" background-color:white;border-radius:1rem">
     <h2 class="font-weight-bold">Sign in</h2>
-    {{#if Error}} <span class="text-danger">{{Error}}</span> {{/if}}
+    {{!-- {{#if Error}} <span class="text-danger">{{Error}}</span> {{/if}} --}}
     <form action="/login" method="post">
     <div class="mb-3">
       <div class="fontstyle">
@@ -53,5 +61,13 @@
       </form>
     </div>
     </section>
-    
+    <script>
+    {{#if Error}}
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: '{{Error}}',
+    });
+  {{/if}}
+  </script>
       

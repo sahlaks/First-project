@@ -76,4 +76,20 @@ const deleteBanner = async (req,res,next) => {
     }
 }
 
-module.exports={getBanner,addBanner,deleteBanner}
+const addOther = async(req,res,next) => {
+    console.log(req.body)
+    try{
+        await Banner.updateOne({},{$set:{text1:req.body.text1,
+            text2:req.body.text2,
+            description1:req.body.description1,
+            description2:req.body.description2,
+            redirectionUrl:req.body.url,}})
+            res.redirect('banner')
+    }catch(error){
+        console.error(error);
+        const err = new Error();
+        err.statusCode = 500;
+        next(err);
+    }
+}
+module.exports={getBanner,addBanner,deleteBanner,addOther}

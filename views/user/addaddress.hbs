@@ -172,6 +172,7 @@ h1 {
     <div class="form-group col-md-6">
       <label for="" class="size">Alternate Phone</label><br>
       <input type="Number" class="form-control form-control-lg" id="alternate" placeholder="Alternate Phone(Optional)" name="phone" value="{{body.phone}}">
+      {{#if err.number.path}} <span class="text-danger">{{err.number.msg}}</span> {{/if}}
     </div>
   </div>
   <br>

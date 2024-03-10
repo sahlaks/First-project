@@ -3,6 +3,8 @@ const walletSchema = new mongoose.Schema({
 userId: {type: String},
 amount: {type:Number},
 orderId : {type:String},
+paymentOption: {type:String},
+status:{type:String},
 total:{type:Number} 
 })
 

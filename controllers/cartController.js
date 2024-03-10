@@ -213,13 +213,117 @@ const updateCart = async (req,res,next) => {
                 { $inc: { 'products.$.quantity': count } }
             );
            } else {
-                res.status(400);
-                res.redirect('/cart?msg=Insufficient+quantity+in+stock!');
-              // return res.json({ message: 'Insufficient quantity in stock' });
+               
+              return res.json({
+                success: false,
+                message: 'Insufficient quantity in stock',
+            });
             }
         }
         }
-        res.redirect('/cart')
+       
+        if(!cart || cart.products.length === 0){
+            res.render('products/cartempty',{user:true})
+        }
+        else{
+            req.session.cartid = cart._id;
+
+        const result = await Cart.aggregate([
+            { $match: { userId: userId } },
+            {
+              $unwind: '$products',
+            },
+            {
+                $project: {
+                    proId: "$products.proId",
+                    quantity: "$products.quantity",
+                }
+            },
+            {
+                $lookup: {
+                  from: 'products', 
+                  let: {proId: {$toObjectId: "$proId"} },
+                  pipeline: [{$match: {$expr: {$eq: ["$_id", "$$proId"] } } } ],
+                  as: 'productDetails',
+                },
+              },
+              {
+                $project: {
+                    proId: "$proId",
+                    quantity: "$quantity",
+                    product: { $arrayElemAt: ["$productDetails", 0] },
+               },
+          },
+          {
+               $project: {
+                    proId: 1,
+                    quantity: 1,
+                    product: 1,
+                    subtotal: { $multiply: ["$quantity", "$product.price"] },
+                    discountProduct: { $multiply: ["$quantity", "$product.discount"] }
+               },
+          },
+        ])
+        //console.log(result)
+        const sum = await Cart.aggregate([
+            { $match: { userId: userId } },
+            {
+              $unwind: '$products',
+            },
+            {
+                $project: {
+                    proId: "$products.proId",
+                    quantity: "$products.quantity",
+                }
+            },
+            {
+                $lookup: {
+                  from: 'products', 
+                  let: {proId: {$toObjectId: "$proId"} },
+                  pipeline: [{$match: {$expr: {$eq: ["$_id", "$$proId"] } } } ],
+                  as: 'productDetails',
+                },
+              },
+              {
+                $project: {
+                    proId: "$proId",
+                    quantity: "$quantity",
+                    product: { $arrayElemAt: ["$productDetails", 0] },
+               },
+          },
+          {
+               $project: {
+                    proId: 1,
+                    quantity: 1,
+                    product: 1,
+                    subtotal: { $multiply: ["$quantity", "$product.price"] },
+                    discountProduct: { $multiply: ["$quantity", "$product.discount"] }
+               },
+          },
+          {
+            $group: {
+                _id: null,
+                subtotal: { $sum: "$subtotal" },
+                discount: { $sum: "$discountProduct" },
+              },
+          },
+          {
+            $project: {
+                proId: 1,
+                quantity: 1,
+                product: 1,
+                subtotal: 1,
+                discount: 1,
+                total: { $subtract: ["$subtotal" , "$discount"]}
+           },
+          }
+
+        ])
+       // console.log(sum)
+       const { subtotal,discount,total } = sum[0]
+    
+       return res.json({success:true, cartData: result, subtotal,discount,total });
+    }
     }catch(error){
         console.error(error)
         const err = new Error();
@@ -470,7 +574,8 @@ const checkout = async (req,res,next) => {
         }])
        
         let user = await Address.findOne({userId})
-    if(user){
+        if(user){
+        let addresses = await Address.find({userId:userId}).lean()
         const address = await Address.aggregate([
                                                 {$match: {
                                                     userId:userId,
@@ -489,14 +594,15 @@ const checkout = async (req,res,next) => {
             var addr;
             addr = address[0].addresses;
             req.session.checkoutaddress = addr;
-            res.render('products/checkout', {user: true,cartData: result,subtotal,discount,total,addr,coupons,error});
+            res.render('products/checkout', {user: true,cartData: result,subtotal,discount,total,addr,coupons,error,addresses});
             }
         else {
             var addr = null;
-            res.render('products/checkout', {user: true,cartData: result,subtotal,discount,total,addr,coupons,error});
+            res.render('products/checkout', {user: true,cartData: result,subtotal,discount,total,addr,coupons,error,addresses});
             }
     }else{
-        var addr = null;
+        var addr = null; 
+        //var addresses = null;
         res.render('products/checkout', {user: true,cartData: result,subtotal,discount,total,addr,coupons,error});
     }
     }catch(error){
@@ -608,6 +714,7 @@ const takeAddress = async (req,res,next) => {
         const { subtotal,discount,total } = sum[0]
         //coupons
         const coupons = await Coupon.find({minAmount : {$lte: total}}).lean()
+
         let user = await Address.findOne({userId})
         if(user){
             const address = await Address.aggregate([
@@ -664,6 +771,7 @@ const checkoutForm = async (req,res,next) => {
             locality: formData.locality,
             district: formData.district,
             pincode: formData.pincode,
+            state: formData.state,
             mobilenumber: formData.mobilenumber,
             email: formData.email,
             type: typeaddr,
@@ -680,6 +788,7 @@ const checkoutForm = async (req,res,next) => {
             locality:formData.locality, 
             district:formData.district,
             pincode:formData.pincode,
+            state:formData.state,
             mobilenumber:formData.mobilenumber,
             email:formData.email,
             type:typeaddr,
@@ -793,6 +902,7 @@ const checkoutForm = async (req,res,next) => {
             locality: formData.locality,
             district: formData.district,
             pincode: formData.pincode,
+            state:formData.state,
             mobilenumber: formData.mobilenumber,
             email: formData.email,
             paymentoption: selectedPaymentOption,
@@ -873,6 +983,17 @@ const checkoutForm = async (req,res,next) => {
             req.session.walletAmount = totalAmount;
             await Wallet.updateMany({userId:req.session.uid},{$set: {total: totalAmount}})
             await Order.updateMany({cartid:req.session.cartid},{$set : {payment:'Success'}})
+            const newWallet = new Wallet({
+                userId:req.session.uid,
+                amount:total,
+                orderId:req.session.cartid,
+                paymentOption:selectedPaymentOption,
+                status:'Debit',
+                total : 0,
+            })
+        
+            await newWallet.save()
+
             res.render('products/wallet-success',{user:true})
             }
         }
@@ -1013,6 +1134,7 @@ const viewOrder = async (req,res,next) => {
             locality: order.locality,
             district: order.district,
             pincode: order.pincode,
+            state:order.state,
             mobilenumber: order.mobilenumber,
             email: order.email,
             paymentoption: order.paymentoption,
@@ -1047,8 +1169,10 @@ const viewOrder = async (req,res,next) => {
         order.status = (order.payment === 'Failure') ? 'Pending' : order.status;
         order.payment = (order.paymentoption === 'COD') ? 'Pending' : order.payment;
         order.payment = (order.paymentoption === 'COD' && order.status === 'Delivered') ? 'Success' : order.payment;
+
         return order;
         });
+
     res.render('products/orderlist',{user:true,combinedOrders})
     }catch(error){
         console.error(error)
@@ -1077,6 +1201,7 @@ const viewOrderList = async (req,res,next) => {
                 locality: order.locality,
                 district: order.district,
                 pincode: order.pincode,
+                state: order.state,
                 mobilenumber: order.mobilenumber,
                 email: order.email,
                 paymentoption: order.paymentoption,
@@ -1174,12 +1299,15 @@ const returnOrder = async (req,res,next) => {
         
         const id = user.userId;
         var sum = user.total;
+        var option = user.paymentoption;
         var total = 0; 
         total += sum;
         const newWallet = new Wallet({
                 userId:req.session.uid,
                 amount:sum,
                 orderId:orderid,
+                paymentOption:option,
+                status:'Credit',
                 total : 0,
             })
         
@@ -1223,7 +1351,7 @@ const returnOrder = async (req,res,next) => {
 const viewWallet = async (req,res,next) => {
     try{
         const user = req.session.uid;
-        const details = await Wallet.find({userId:user}).sort({_id:1}).lean()
+        const details = await Wallet.find({userId:user}).sort({_id: -1}).lean()
         if(!details){
             const err = new Error('Wallet not found');
             err.statusCode = 404;
@@ -1257,6 +1385,7 @@ const viewInvoice = async (req,res) => {
                     locality: order.locality,
                     district: order.district,
                     pincode: order.pincode,
+                    state: order.state,
                     mobilenumber: order.mobilenumber,
                     email: order.email,
                     paymentoption: order.paymentoption,
@@ -1356,5 +1485,5 @@ module.exports = {
                 razorpayCheck,
                 returnOrder,
                 viewWallet,
-                viewInvoice
+                viewInvoice,
                 }

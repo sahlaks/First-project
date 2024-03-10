@@ -17,7 +17,7 @@ const getSalesReport = async (req,res,next) => {
             order.date = new Date(dateString).toISOString().split('T')[0];
             return order;
         })
-        const data = final.filter((order)=> order.date===date)
+        const data = final.filter((order)=> order.date===date && order.status==='Delivered')
     }catch(error){
       console.error(error)
       const err = new Error()
@@ -36,7 +36,7 @@ const getSalesReport = async (req,res,next) => {
             order.date = new Date(dateString).toISOString().split('T')[0];
             return order;
         })
-        const data = final.filter((order)=> order.date===date)
+        const data = final.filter((order)=> order.date===date && order.status==='Delivered')
         res.render('admin/salesReport',{data,date})
     }catch(error){
         console.error(error)
@@ -56,7 +56,7 @@ const getSalesReport = async (req,res,next) => {
             order.date = new Date(dateString).toISOString().split('T')[0];
             return order;
         })
-        const data = final.filter((order)=> order.date===date)
+        const data = final.filter((order)=> order.date===date && order.status==='Delivered')
         const csvStream = fastCsv.format({ headers: true });
             res.setHeader('Content-Type', 'text/csv');
             res.setHeader('Content-Disposition', `attachment; filename=dailyorders.csv`);
@@ -85,7 +85,7 @@ const getSalesReport = async (req,res,next) => {
             return order;
         })
         const data = final.filter((order)=>{
-            return order.date >= start && order.date <= end })
+            return order.date >= start && order.date <= end && order.status==='Delivered'})
         res.render('admin/salesReport',{data,start,end})
     }catch(error){
         console.error(error);
@@ -106,7 +106,7 @@ const customCsv = async(req,res,next)=>{
             return order;
         })
         const data = final.filter((order)=>{
-            return order.date >= start && order.date <= end })
+            return order.date >= start && order.date <= end && order.status==='Delivered'})
             const csvStream = fastCsv.format({ headers: true });
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', `attachment; filename=customorders.csv`);
@@ -138,7 +138,7 @@ const monthlyReport = async(req,res,next) =>{
             return order;
         })
         const data = final.filter((order)=>{
-            return order.date > start && order.date <= end })
+            return order.date > start && order.date <= end && order.status==='Delivered' })
             res.render('admin/salesReport',{data})
     }catch(error){
         console.error(error)
@@ -164,7 +164,7 @@ const monthlyCsv = async(req,res,next)=>{
             return order;
         })
         const data = final.filter((order)=>{
-            return order.date > start && order.date <= end })
+            return order.date > start && order.date <= end && order.status==='Delivered'})
         const csvStream = fastCsv.format({ headers: true });
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', `attachment; filename=monthlyorders.csv`);
@@ -196,7 +196,7 @@ const yearlyReport = async (req,res,next) =>  {
             return order;
         })
         const data = final.filter((order)=>{
-            return order.date > start && order.date <= end })
+            return order.date > start && order.date <= end && order.status==='Delivered'})
         res.render('admin/salesReport',{data})    
     }catch(error){
         console.error(error)
@@ -221,7 +221,7 @@ const yearlyCsv = async(req,res,next)=>{
             return order;
         })
         const data = final.filter((order)=>{
-            return order.date > start && order.date <= end })
+            return order.date > start && order.date <= end && order.status==='Delivered'})
 
         const csvStream = fastCsv.format({ headers: true });
         res.setHeader('Content-Type', 'text/csv');

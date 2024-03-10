@@ -1,8 +1,8 @@
 const express = require('express');
 const { signupGetController, createUser, userLogin, userIn, homeRoute, checkOtp, forgotPass, verifyMail, failOtp, sendOtp, getOtp, reSendOtp, resetPwd, reSet, contactController, aboutController, signout, profile, address, editProfile, addAddress, addaddress, deleteAddress, changepwd, editAddress, updateAddress, changepassword } = require('../controllers/userController');
-const { validationRules, checkValidation, verifyLogin, pwdValidation, resetPwdRules, changepwdRules, changepwdValidation, addressValidation, addressRules, editaddressValidation, checkoutaddressValidation } = require('../middlewares/middlewares');
+const { validationRules, checkValidation, verifyLogin, pwdValidation, resetPwdRules, changepwdRules, changepwdValidation, addressValidation, addressRules, editaddressValidation, checkoutaddressValidation, isBlocked, profileRules, profileValidation, editRules, checkoutRules } = require('../middlewares/middlewares');
 const { products, productDetails} = require('../controllers/productController');
-const { addCart, wishlist, cart, wishlistView, deleteWishlist, deleteCart, checkout, updateCart, takeAddress, orderSuccess, checkoutForm, viewOrder, viewOrderList, cancelOrder, razorpayChecking, returnOrder, viewWallet, viewInvoice, razorpayCheck} = require('../controllers/cartController');
+const { addCart, wishlist, cart, wishlistView, deleteWishlist, deleteCart, checkout, updateCart, takeAddress, orderSuccess, checkoutForm, viewOrder, viewOrderList, cancelOrder, razorpayChecking, returnOrder, viewWallet, viewInvoice, razorpayCheck, cartData} = require('../controllers/cartController');
 const { getCoupons, checkCoupon, applyCoupon } = require('../controllers/couponController');
 const app = express.Router();
 
@@ -14,7 +14,7 @@ app.post('/login',userIn)
 
 
 /*...........................................forgot password..............................................*/
-app.get('/forgotpwd',forgotPass)
+app.get('/forgotpwd',isBlocked,forgotPass)
 app.post('/forgotpwd',verifyMail)
 
 
@@ -24,7 +24,7 @@ app.post('/resetpwd',verifyLogin,resetPwdRules,pwdValidation,reSet)
 
 
 /*...........................................home page.................................................................*/
-app.get('/home',verifyLogin,homeRoute)
+app.get('/home',verifyLogin,isBlocked,homeRoute)
 
 
 /*.............................................signup..............................................................*/
@@ -48,19 +48,19 @@ app.get('/about',verifyLogin,aboutController)
 
 
 /*.............................................Product display and details...............................................*/
-app.get('/products',verifyLogin,products)
+app.get('/products',verifyLogin,isBlocked,products)
 app.get('/productdetails/:id',verifyLogin,productDetails)
 
 
 /*.........................................Cart, Wishlist............................................................*/
 app.post('/addcart/:pid',verifyLogin,addCart)
-app.get('/cart',verifyLogin,cart)
+app.get('/cart',verifyLogin,isBlocked,cart)
 app.get('/deleteCart/:productId',verifyLogin,deleteCart)  
 app.get('/cartChangeQuantity',verifyLogin,updateCart)
 
 
 
-app.post('/wishlist/:pid',verifyLogin,wishlist)
+app.post('/wishlist/:pid',verifyLogin,isBlocked,wishlist)
 app.get('/wishlistview',verifyLogin,wishlistView)
 app.get('/deleteWishlist/:pid',verifyLogin,deleteWishlist)
 
@@ -68,22 +68,22 @@ app.get('/deleteWishlist/:pid',verifyLogin,deleteWishlist)
 /*...................................................checkout....................................................*/
 app.get('/checkout',verifyLogin,checkout)
 app.get('/showaddress',verifyLogin,takeAddress)
-app.post('/postcheckout',verifyLogin,checkoutForm)
+app.post('/postcheckout',verifyLogin,checkoutRules,checkoutaddressValidation,checkoutForm)
 app.post('/razorpay/callback',razorpayChecking);
 app.post('/razpay/callback',razorpayCheck)
-app.get('/vieworder',verifyLogin,viewOrder)
+app.get('/vieworder',verifyLogin,isBlocked,viewOrder)
 app.get('/editorder',verifyLogin,viewOrderList)
 app.get('/cancelorder',verifyLogin,cancelOrder)
 app.get('/returnorder',verifyLogin,returnOrder)
 app.get('/wallet',verifyLogin,viewWallet)
 
 /*................................................profile...........................................................*/
-app.get('/profile',verifyLogin,profile)
-app.post('/editprofile',verifyLogin,editProfile)
+app.get('/profile',verifyLogin,isBlocked,profile)
+app.post('/editprofile',verifyLogin,profileRules,profileValidation,editProfile)
 
 
 /*...............................................Coupons...........................................................*/
-app.get('/getcoupon',verifyLogin,getCoupons)
+app.get('/getcoupon',verifyLogin,isBlocked,getCoupons)
 app.get('/applyCoupon',verifyLogin,applyCoupon)
 app.get('/invoice',viewInvoice)
 
@@ -92,7 +92,7 @@ app.get('/address',verifyLogin,address)
 app.get('/addaddress',verifyLogin,addaddress)
 app.post('/addaddress',verifyLogin,addressRules,addressValidation,addAddress)
 app.get('/editaddress',verifyLogin,editAddress)
-app.post('/editaddress/:id',verifyLogin,addressRules,editaddressValidation,updateAddress)
+app.post('/editaddress/:id',verifyLogin,editRules,editaddressValidation,updateAddress)
 app.get('/deleteaddress/:id',verifyLogin,deleteAddress)
 
 

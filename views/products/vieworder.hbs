@@ -394,6 +394,10 @@ if(status == 'Pending' || status == 'Cancelled'){
 if((status=='Placed'||status=='Shipped') && (payment=='Razorpay')){
      document.getElementById('invoice').style.display = 'block';
 }
+if(status == 'Returned'){
+    document.getElementById('payment').style.display = 'none';
+    document.getElementById('invoice').style.display = 'none';
+}
 </script>
 </body>
 </html>

@@ -70,6 +70,9 @@ app.engine('hbs',hbs({extname:'hbs',defaultLayout:'layout',layoutsDir:__dirname+
 
                             }
                           },
+                          addOne: function(value){
+                            return value+1;
+                          }
                         }
                             }))
 

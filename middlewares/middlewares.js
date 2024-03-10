@@ -2,7 +2,12 @@ const {check,validationResult} = require('express-validator');
 const multer = require('multer')
 const path = require('path')
 const sharp =require('sharp')
-const fs = require('fs').promises
+const fs = require('fs').promise
+const User = require('../models/userModel');
+const { json } = require('body-parser');
+const Coupon = require("../models/couponModel");
+const Cart = require("../models/cartModel");
+const Address = require('../models/addressModel');
 
 
 const validationRules=[
@@ -65,6 +70,50 @@ const verifyAdmin = (req,res,next) => {
     }
     else{
         res.render('admin/adlogin')
+    }
+}
+
+const isBlocked = async (req,res,next) => {
+    const userId = req.session.uid;
+    console.log(userId);
+    const user = await User.findOne({_id:userId});
+    //console.log(user)
+    if (!user) {
+        return res.redirect('/login');
+    }
+    if(user.isblocked){
+        req.session.destroy((err) => {
+            if (err) {
+              console.error('Error destroying session:', err);
+            }
+            res.render('user/login',{Error: true});
+        });
+      } else {
+        next();
+    }
+}
+/*.................Profile Validation..........................*/
+const profileRules = [
+    check('username').not().isEmpty().withMessage("Username is required").isLength({min:5}).withMessage('Username must be above 5 characters')
+    .matches(/^[a-zA-Z0-9 ]+$/).withMessage("invalid value"),
+
+    check('mobilenumber').not().isEmpty().withMessage("Mobile number is required")
+    .isLength({min:10,max:10}).withMessage('Mobile number must be 10 digits')
+    .matches(/^[0-9]+$/).withMessage("Invalid mobile number")
+    .matches(/^(?!0+$)\d{10}$/).withMessage("Invalid mobile number"),
+
+    check('email').not().isEmpty().withMessage("Email is required")
+    .isEmail().withMessage('Invalid email')
+]
+
+const profileValidation =(req,res,next)=>{
+    let error= validationResult(req)
+    console.log(error.mapped())
+    if(!error.isEmpty()){
+        res.render("user/profile",{err:error.mapped(),user1:req.body})
+    }
+    else{
+        next()
     }
 }
 
@@ -292,7 +341,17 @@ const addressRules = [
 
     check('mobilenumber')
     .not().isEmpty().withMessage('Mobilenumber should not be empty')
-    .isLength({min:10,max:10}).withMessage('Mobilenumber must be 10 digits'),
+    .isLength({min:10,max:10}).withMessage('Mobilenumber must be 10 digits')
+    .matches(/^[0-9]+$/).withMessage("Invalid mobile number")
+    .matches(/^(?!0+$)\d{10}$/).withMessage("Invalid mobile number"),
+
+    check('landmark')
+    .not().isEmpty().withMessage('Landmark should not be empty'),
+
+    check('phone')
+    .isLength({min:10,max:10}).withMessage('Mobilenumber must be 10 digits')
+    .matches(/^[0-9]+$/).withMessage("Invalid mobile number")
+    .matches(/^(?!0+$)\d{10}$/).withMessage("Invalid mobile number"),   
 
     check('type').isIn(['home', 'work']).withMessage('Invalid radio button value')
 ]
@@ -308,6 +367,56 @@ const addressValidation = (req,res,next)=>{
     }
 }
 
+const editRules = [
+    check('fname')
+    .not().isEmpty().withMessage('First name should not be empty')
+    .isString().withMessage("First name should only consists of characters"),
+    
+    check('sname')
+    .not().isEmpty().withMessage('Second name should not be empty')
+    .isString().withMessage("Second name should only consists of characters"),
+    
+    check('pincode')
+    .not().isEmpty().withMessage('Pincode should not be empty')
+    .isNumeric().withMessage('Invalid pincode')
+    .isLength({min:6,max:6}).withMessage('Pincode must be 6 digits'),
+
+    check('locality')
+    .not().isEmpty().withMessage('Locality should not be empty'),
+
+    check('address')
+    .not().isEmpty().withMessage('Address should not be empty'),
+
+    check('district')
+    .not().isEmpty().withMessage('District should not be empty')
+    .isString().withMessage("Invalid value"),
+
+    check('state')
+    .not().isEmpty().withMessage('State should not be empty')
+    .isString().withMessage("Invalid value"),
+
+    check('email')
+    .not().isEmpty().withMessage('Email should not be empty')
+    .isEmail().withMessage('Invalid email'),
+
+    check('mobilenumber')
+    .not().isEmpty().withMessage('Mobilenumber should not be empty')
+    .isLength({min:10,max:10}).withMessage('Mobilenumber must be 10 digits')
+    .matches(/^[0-9]+$/).withMessage("Invalid mobile number")
+    .matches(/^(?!0+$)\d{10}$/).withMessage("Invalid mobile number"),
+
+    check('landmark')
+    .not().isEmpty().withMessage('Landmark should not be empty'),
+
+    check('phone')
+    .isLength({min:10,max:10}).withMessage('Mobilenumber must be 10 digits')
+    .matches(/^[0-9]+$/).withMessage("Invalid mobile number")
+    .matches(/^(?!0+$)\d{10}$/).withMessage("Invalid mobile number"),   
+
+    // check('type').isIn(['home', 'work']).withMessage('Invalid radio button value')
+]
+
+
 const editaddressValidation = (req,res,next) =>{
     let error = validationResult(req)
     console.log(error.mapped())
@@ -319,11 +428,171 @@ const editaddressValidation = (req,res,next) =>{
     }
 }
 
-const checkoutaddressValidation = (req,res,next) =>{
-    let error = validationResult(req)
-    console.log(error.mapped())
-    if(!error.isEmpty()){
-        res.render("products/checkout",{err:error.mapped(),user:true,addr:req.body})
+const checkoutRules = [
+    check('fname')
+    .not().isEmpty().withMessage('First name should not be empty')
+    .isString().withMessage("First name should only consists of characters"),
+    
+    check('sname')
+    .not().isEmpty().withMessage('Second name should not be empty')
+    .isString().withMessage("Second name should only consists of characters"),
+    
+    check('pincode')
+    .not().isEmpty().withMessage('Pincode should not be empty')
+    .isNumeric().withMessage('Invalid pincode')
+    .isLength({min:6,max:6}).withMessage('Pincode must be 6 digits'),
+
+    check('locality')
+    .not().isEmpty().withMessage('Locality should not be empty'),
+
+    check('address')
+    .not().isEmpty().withMessage('Address should not be empty'),
+
+    check('district')
+    .not().isEmpty().withMessage('District should not be empty')
+    .isString().withMessage("Invalid value"),
+
+    check('state')
+    .not().isEmpty().withMessage('State should not be empty')
+    .isString().withMessage("Invalid value"),
+
+    check('email')
+    .not().isEmpty().withMessage('Email should not be empty')
+    .isEmail().withMessage('Invalid email'),
+
+    check('mobilenumber')
+    .not().isEmpty().withMessage('Mobilenumber should not be empty')
+    .isLength({min:10,max:10}).withMessage('Mobilenumber must be 10 digits')
+    .matches(/^[0-9]+$/).withMessage("Invalid mobile number")
+    .matches(/^(?!0+$)\d{10}$/).withMessage("Invalid mobile number"),
+
+]
+
+
+const checkoutaddressValidation = async (req,res,next) =>{
+    let errors = validationResult(req)
+    console.log(errors.mapped())
+   
+        const userId = req.session.uid;
+        //const error = req.query.error
+        const result = await Cart.aggregate([
+            { $match: { userId: userId } },
+            {
+              $unwind: '$products',
+            },
+            {
+                $project: {
+                    proId: "$products.proId",
+                    quantity: "$products.quantity",
+                }
+            },
+            {
+                $lookup: {
+                  from: 'products', 
+                  let: {proId: {$toObjectId: "$proId"} },
+                  pipeline: [{$match: {$expr: {$eq: ["$_id", "$$proId"] } } } ],
+                  as: 'productDetails',
+                },
+              },
+              {
+                $project: {
+                    proId: "$proId",
+                    quantity: "$quantity",
+                    product: { $arrayElemAt: ["$productDetails", 0] },
+               },
+          },
+          {
+               $project: {
+                    proId: 1,
+                    quantity: 1,
+                    product: 1,
+                    subtotal: { $multiply: ["$quantity", "$product.price"] },
+                    discountProduct: { $multiply: ["$quantity", "$product.discount"] }
+               },
+          },
+        ])
+          
+      
+        const sum = await Cart.aggregate([
+            { $match: { userId: userId } },
+            {
+              $unwind: '$products',
+            },
+            {
+                $project: {
+                    proId: "$products.proId",
+                    quantity: "$products.quantity",
+                }
+            },
+            {
+                $lookup: {
+                  from: 'products', 
+                  let: {proId: {$toObjectId: "$proId"} },
+                  pipeline: [{$match: {$expr: {$eq: ["$_id", "$$proId"] } } } ],
+                  as: 'productDetails',
+                },
+              },
+              {
+                $project: {
+                    proId: "$proId",
+                    quantity: "$quantity",
+                    product: { $arrayElemAt: ["$productDetails", 0] },
+               },
+          },
+          {
+               $project: {
+                    proId: 1,
+                    quantity: 1,
+                    product: 1,
+                    subtotal: { $multiply: ["$quantity", "$product.price"] },
+                    discountProduct: { $multiply: ["$quantity", "$product.discount"] }
+               },
+          },
+          {
+            $group: {
+                _id: null,
+                subtotal: { $sum: "$subtotal" },
+                discount: { $sum: "$discountProduct" },
+              },
+          },
+          {
+            $project: {
+                proId: 1,
+                quantity: 1,
+                product: 1,
+                subtotal: 1,
+                discount: 1,
+                total: { $subtract: ["$subtotal" , "$discount"]}
+           },
+          }
+
+        ])
+        const { subtotal,discount,total } = sum[0]
+
+        //coupons
+        const coupons = await Coupon.find({minAmount : {$lte: total}}).lean()
+        let user = await Address.findOne({userId})
+        // if(user){
+        //     const address = await Address.aggregate([
+        //         {$match: {
+        //             userId:userId,
+        //             'addresses.type':type
+        //         }},
+        //         {
+        //             $unwind:'$addresses'
+        //         },
+        //         {
+        //             $match:{
+        //                 'addresses.type':type
+        //             }
+        //         }
+        //         ])
+        //     }
+        //         // if(address.length > 0 ){
+                // var addr;
+                // addr = (address[0].addresses);
+    if(!errors.isEmpty()){
+        res.render("products/checkout",{err:errors.mapped(),user:true,addr:req.body,cartData: result,subtotal,discount,total,coupons})
     }
     else{
         next()
@@ -407,6 +676,11 @@ module.exports = {validationRules,
                 addressValidation,
                 productImgResize,
                 productImgResizeSingle,
+                editRules,
                 editaddressValidation,
-                checkoutaddressValidation
+                checkoutRules,
+                checkoutaddressValidation,
+                isBlocked,
+                profileRules,
+                profileValidation
                 }

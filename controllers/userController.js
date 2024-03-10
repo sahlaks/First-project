@@ -21,6 +21,7 @@ var transporter = nodemailer.createTransport({
 
 /*.............................................user sign in.................................................................*/
 const userLogin = (req,res) => {
+    const Err = req.query.isblocked;
     res.render('user/login')
 }
 
@@ -372,7 +373,7 @@ const editAddress = async (req,res,next) => {
             return;
         }
         req.session.address = data
-        res.render('user/editaddress',{user:true,data,type})
+        res.render('user/editaddress',{user:true,data,type,Id})
         }else{
             const err = new Error('User not found');
             err.statusCode = 404;
@@ -389,8 +390,11 @@ const editAddress = async (req,res,next) => {
                                     /*....update address....*/
 const updateAddress = async (req,res,next) => {
     try{
+        console.log(req.body)
         const userId = req.session.uid;
         const type = req.session.type;
+        const addressId = req.params.id;
+        console.log('inside',addressId)
         const user = await Address.findOne({userId}).lean()
         if(user){
         const data = await Address.findOneAndUpdate({userId,'addresses.type':type},
@@ -407,8 +411,11 @@ const updateAddress = async (req,res,next) => {
                                         'addresses.$.email': req.body.email,
                                         'addresses.$.mobilenumber': req.body.mobilenumber,
                                         'addresses.$.type': type,
-                                        }})
+                                        }},
+                                        {new:true})
+                                        
         }
+       
         res.redirect('/address')
     }catch(error){
         console.error(error);

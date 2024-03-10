@@ -466,6 +466,7 @@ const getOrder = async (req,res,next) => {
                 cartid: order.cartid,
                 status: order.status,
                 date: order.date,
+                payment: order.payment,
                 
                 subtotal: order.subtotal,
                 discount: order.discount,
@@ -485,7 +486,13 @@ const getOrder = async (req,res,next) => {
             quantity: order.quantity,
         });
     });
-    const combinedOrders = Array.from(groupedOrders.values());
+    const combinedOrders = Array.from(groupedOrders.values()).map(order => {
+     // order.date = formatOrderDate(order.date);
+      order.status = (order.payment === 'Failure') ? 'Pending' : order.status;
+      order.payment = (order.paymentoption === 'COD') ? 'Pending' : order.payment;
+      order.payment = (order.paymentoption === 'COD' && order.status === 'Delivered') ? 'Success' : order.payment;
+      return order;
+  });
         res.render('admin/order',{combinedOrders,totalPages,currentPage,pages})
     }catch(error){
       console.error(error);
@@ -541,7 +548,8 @@ const editOrder = async (req,res,next) => {
                 cartid: order.cartid,
                 status: order.status,
                 date: order.date,
-                
+                payment: order.payment,
+
                 subtotal: order.subtotal,
                 discount: order.discount,
                 total: order.total,
@@ -561,7 +569,13 @@ const editOrder = async (req,res,next) => {
             subtotalprod: order.subtotalprod,
         });
     });
-    const combinedOrders = Array.from(groupedOrders.values());    
+    const combinedOrders = Array.from(groupedOrders.values()).map(order => {
+      // order.date = formatOrderDate(order.date);
+       order.status = (order.payment === 'Failure') ? 'Pending' : order.status;
+       order.payment = (order.paymentoption === 'COD') ? 'Pending' : order.payment;
+       order.payment = (order.paymentoption === 'COD' && order.status === 'Delivered') ? 'Success' : order.payment;
+       return order;
+   });
 
         res.render('admin/editorder',{combinedOrders,orderId})
 
