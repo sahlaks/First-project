@@ -303,7 +303,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (response.ok) {
             const result = await response.json();
-
+            document.getElementById('cart-badge').innerHTML = result.count;
             if (result.added) {
                 Swal.fire({
                     title: 'Success!',

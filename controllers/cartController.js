@@ -42,6 +42,7 @@ const addCart = async (req,res,next) => {
             //res.redirect('/products?msg=Out+of+stock.+Cannot+add+product+to+cart')
         }
         else{
+
         const user = await Cart.findOne({userId})
         if(user){
             const existpro = user.products.find(p => p.proId == pId)
@@ -56,7 +57,10 @@ const addCart = async (req,res,next) => {
                 user.products.push({proId:pId,quantity:1})
             }
             await user.save();
-            res.json({ added: true, message: 'Item added to cart.' });
+
+            let cartCount  = await Cart.findOne({userId:req.session.uid})
+
+            res.json({ added: true, message: 'Item added to cart.',count:cartCount.products.length });
 
         }else{
             const cartData = {userId,
@@ -64,7 +68,9 @@ const addCart = async (req,res,next) => {
                              }
                 
             const newCart = await Cart.create(cartData);
-            res.json({ added: true, message: 'Item added to cart.' });
+            let cartCount  = await Cart.findOne({userId:req.session.uid})
+
+            res.json({ added: true, message: 'Item added to cart.',count:cartCount.products.length });
             }
         //res.redirect('/cart')
         } 
@@ -355,6 +361,26 @@ const deleteCart = async (req,res,next) => {
     }
   }
 
+
+/*.................................................cart count..........................................*/
+const cartCount = async(req,res) => {
+    try {
+        
+    const user = req.session.uid;
+    const cart = await Cart.findOne({userId:user})
+    var cartCount = 0;
+    if(cart){
+         cartCount = cart.products.length
+    }
+
+    console.log(cart.products.length)
+    // console.log(cartCount)
+    res.json({success:true,count: cartCount})
+} catch (error) {
+    console.error('Error fetching cart:', error);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+}
 
 
 /*..................................................wish list..............................................*/
@@ -1486,4 +1512,5 @@ module.exports = {
                 returnOrder,
                 viewWallet,
                 viewInvoice,
+                cartCount
                 }
