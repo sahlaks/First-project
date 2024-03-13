@@ -75,7 +75,7 @@ const verifyAdmin = (req,res,next) => {
 
 const isBlocked = async (req,res,next) => {
     const userId = req.session.uid;
-    console.log(userId);
+    //console.log(userId);
     const user = await User.findOne({_id:userId});
     //console.log(user)
     if (!user) {
@@ -86,7 +86,7 @@ const isBlocked = async (req,res,next) => {
             if (err) {
               console.error('Error destroying session:', err);
             }
-            res.render('user/login',{Error: true});
+            res.render('user/login',{Error: 'You cannot access the page!'});
         });
       } else {
         next();

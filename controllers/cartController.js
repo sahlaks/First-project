@@ -1009,6 +1009,22 @@ const checkoutForm = async (req,res,next) => {
             req.session.walletAmount = totalAmount;
             await Wallet.updateMany({userId:req.session.uid},{$set: {total: totalAmount}})
             await Order.updateMany({cartid:req.session.cartid},{$set : {payment:'Success'}})
+            const data = await Order.find({cartid:req.session.cartid})
+            await Promise.all(
+                data.map(async (order) => {
+                  try {
+                    const product = await Product.findOne({ _id: order.proId });
+                    if (product && product.quantity >= order.quantity) {
+                        product.quantity -= order.quantity;
+                        await product.save();
+                    } else {
+                        console.error(`Insufficient quantity or product not found for proId: ${order.proId}`);
+                    }
+                } catch (error) {
+                    console.error(`Error updating product quantity for proId ${order.proId}: ${error}`);
+                }
+                })
+            )
             const newWallet = new Wallet({
                 userId:req.session.uid,
                 amount:total,
@@ -1019,7 +1035,6 @@ const checkoutForm = async (req,res,next) => {
             })
         
             await newWallet.save()
-
             res.render('products/wallet-success',{user:true})
             }
         }
@@ -1377,7 +1392,7 @@ const returnOrder = async (req,res,next) => {
 const viewWallet = async (req,res,next) => {
     try{
         const user = req.session.uid;
-        const details = await Wallet.find({userId:user}).sort({_id: -1}).lean()
+        const details = await Wallet.find({userId:user}).sort({_id: 1}).lean()
         if(!details){
             const err = new Error('Wallet not found');
             err.statusCode = 404;
