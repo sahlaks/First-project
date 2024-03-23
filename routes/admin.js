@@ -3,7 +3,7 @@ const { adminLogin, adLoginPost, getDashboard, getProduct, getCategory, getOrder
 const { verifyAdmin, upload, categoryRules, categValidation, categoryValidation, productRules, proValidation, productValidation, productImgResize, productImgResizeSingle } = require('../middlewares/middlewares');
 const { addPro, addProduct, addCategory, listCategory, deleteCategory, editCat, editcategory, updateimage, deleteProduct, updatePro, editProduct, editimage, editimages, deleteImage, deleteImages } = require('../controllers/productController');
 const { getCoupon, createNewCoupon, postNewCoupon, editCoupon, deleteCoupon } = require('../controllers/couponController');
-const { getBanner, addBanner, deleteBanner, addOther } = require('../controllers/bannerController');
+const { getBanner, addBanner, deleteBanner, addOther, showPage } = require('../controllers/bannerController');
 const { salesReport, getSalesReport, getSales, report, customReport, monthlyReport, yearlyReport, yearlyCsv, monthlyCsv, dailyCsv, customCsv } = require('../controllers/salesReportController');
 const app = express.Router();
 
@@ -70,8 +70,9 @@ app.get('/isblocked/:id',verifyAdmin,isBlocked)
 
 /*.............................................banner..................................................................*/
 app.get('/banner',verifyAdmin,getBanner)
-app.post('/addBanner',verifyAdmin,upload.array('images',4),addBanner)
-app.get('/deleteBanner',verifyAdmin,deleteBanner)
+app.get('/addBanner',verifyAdmin,showPage)
+app.post('/addBanner',verifyAdmin,upload.single('image'),addBanner)
+app.get('/deleteBanner/:id',verifyAdmin,deleteBanner)
 app.post('/updateBanner',verifyAdmin,addOther)
 
 /*..............................................logout.....................................................*/

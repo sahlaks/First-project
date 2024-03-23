@@ -373,7 +373,7 @@ const cartCount = async(req,res) => {
          cartCount = cart.products.length
     }
 
-    console.log(cart.products.length)
+   // console.log(cart.products.length)
     // console.log(cartCount)
     res.json({success:true,count: cartCount})
 } catch (error) {
@@ -1035,6 +1035,12 @@ const checkoutForm = async (req,res,next) => {
             })
         
             await newWallet.save()
+            // var totalVal = await Wallet.aggregate([
+            //     {$match:{userId:req.session.uid}},
+            //     { $group: { _id: null, total: { $sum: '$amount' } } }
+            // ])
+            // const result = totalVal.length > 0 ? totalVal[0].total : 0;    
+            await Wallet.updateMany({userId:req.session.uid},{$set:{total:totalAmount}})
             res.render('products/wallet-success',{user:true})
             }
         }
@@ -1355,7 +1361,7 @@ const returnOrder = async (req,res,next) => {
         await newWallet.save()
 
         const totalAmount = await Wallet.aggregate([
-                {$match:{userId:id}},
+                {$match:{userId:id,status:'Credit'}},
                 { $group: { _id: null, total: { $sum: '$amount' } } }
             ])
             const result = totalAmount.length > 0 ? totalAmount[0].total : 0;    
@@ -1391,15 +1397,36 @@ const returnOrder = async (req,res,next) => {
 /*...................................................view wallet.........................................................................*/
 const viewWallet = async (req,res,next) => {
     try{
+        var page = 1;
+        if(req.query.page){
+                page = req.query.page;
+        }
+
+        const limit = 6
         const user = req.session.uid;
-        const details = await Wallet.find({userId:user}).sort({_id: 1}).lean()
+
+        const details = await Wallet.find({userId:user}).sort({_id: -1}).limit( limit * 1 )
+        .skip( (page - 1) * limit ).lean()
+
+        const counts = await Wallet.find({userId:user}).countDocuments()
+        const totalPages = Math.ceil(counts/limit);
+        const currentPage = page;
+
+        const pages = [];
+        for (let j = 1; j <= totalPages; j++) {
+            pages.push({
+                        pageNumber: j,
+                        isCurrent: j == currentPage,
+                        });
+}
+       // console.log(details)
         if(!details){
             const err = new Error('Wallet not found');
             err.statusCode = 404;
             throw err;
         }
         var value = details.length > 0 ? details[0].total : 0;      
-        res.render('user/wallet',{user:true,details,value})
+        res.render('user/wallet',{user:true,details,value,totalPages,currentPage,pages})
 
     }catch(error){
         console.error(error)

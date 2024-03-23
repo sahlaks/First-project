@@ -82,6 +82,39 @@ td,th{
     text-align: center;
 }
   
+.pagination {
+    display: flex;
+    list-style: none;
+    padding: 0;
+}
+
+.pagination a,
+.pagination .current-page {
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 0 4px;
+    text-decoration: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    color: #333;
+}
+
+.pagination .current-page {
+    background-color: #007bff;
+    color: #fff;
+    border: 1px solid #007bff;
+}
+
+.page-numbers-below {
+    margin-top: 10px;
+}
+
+.page-numbers-below a {
+    margin-right: 10px;
+    text-decoration: none;
+    color: #007bff;
+}
+
 </style>
 
 
@@ -155,8 +188,21 @@ td,th{
     <div>
       <p style="font-size: 2rem;"> <span><strong>Total amount in Wallet : {{value}}</strong></span> </p>
     </div>
+
+    {{#if totalPages}}
+    <div class="pagination">
+        {{#each pages}}
+            {{#if this.isCurrent}}
+                <span class="current-page">{{this.pageNumber}}</span>
+            {{else}}
+                <a href="?page={{this.pageNumber}}">{{this.pageNumber}}</a>
+            {{/if}}
+        {{/each}}
+    </div>
+    {{/if}}
     </main>
 </div>
+
 </body>
 </html>
 

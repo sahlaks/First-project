@@ -63,7 +63,7 @@ const homeRoute = async (req,res,next) => {
     const newarrival = await Product.find().sort({_id:-1}).limit(3).lean()
     const user = await Cart.findOne({userId:userId})
     const user1 = await Wishlist.findOne({userId:userId})
-    const banner = await Banner.findOne({}).lean()
+    const banner = await Banner.find().lean()
     if(user){
         var cart = user.products.length;
         if(!cart){

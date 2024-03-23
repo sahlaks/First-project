@@ -15,30 +15,31 @@ const getBanner = async (req,res,next) => {
     }
 }
 
+/*............................................get banner page....................................................*/
+const showPage = async (req,res,next) => {
+    try{
+        res.render('admin/addBanner')
+    }catch(error){
+        console.error(error)
+        const err = new Error('Internal server error')
+        err.statusCode = 500
+        next(err)
+    }
+}
+
+
 /*...................................................add banner.................................................*/
 const addBanner = async (req,res,next) => { 
     try{
-        if (req.files && req.files.length > 0) {
-        const newImages = req.files.map( file => file.filename)
-        var image = req.body.selectedImage;
-        if(req.body.selectedImage){
-            if(image == 'image1'){
-                await Banner.updateOne({},{$set: {image1: newImages[0]}})
-            }else{
-                await Banner.updateOne({},{$set: {image2: newImages[0]}})
-            }
-        }
-        else
-        {
-        const newBanner = new Banner({
-            image1 : newImages[0],
-            image2 : newImages[1]
-        });
-
-        await newBanner.save();
-        }
+        const filepath = req.file.filename;
+        console.log(filepath)
+        const banner = await Banner.create(req.body)
+        const bannerId = banner._id
+        const ban = await Banner.findByIdAndUpdate(
+            bannerId,
+            { image: filepath }
+        );
         res.redirect('banner')
-    }
     }catch(error){
         console.error(error);
         const err = new Error();
@@ -49,32 +50,24 @@ const addBanner = async (req,res,next) => {
 
 /*......................................................delete banner..............................................................*/
 const deleteBanner = async (req,res,next) => {
+    const bannId = req.params.id 
     try{
-        const name = req.query.name;
-        const result =await Banner.findOne({})
-        
-        if(result.image1 == name){
+        const deleteBann = await Banner.deleteOne({_id: bannId})
+        if(deleteBann){
+            const banner = await Banner.find().lean();
+            res.redirect('/admin/banner')
+        }else{
+            res.render('admin/banner',{Error:'Banner not found..'})
+        }
 
-            await Banner.updateOne(
-                { image1: name },
-                { $unset: { image1: 1 } }
-            );
-        }
-        else if (result.image2 === name) {
-            await Banner.updateOne({}, { $unset: { image2: 1 } });
-        } else {
-            const err = new Error('Banner not found');
-            err.statusCode = 404;
-            throw err;
-        }
-        res.redirect('banner')
-    }catch(error){
-        console.error(error);
+    }catch (error){
+        console.error(error)
         const err = new Error();
-        err.statusCode = 500;
+        err.statusCode = 404;
         next(err);
     }
 }
+
 
 const addOther = async(req,res,next) => {
     console.log(req.body)
@@ -92,4 +85,4 @@ const addOther = async(req,res,next) => {
         next(err);
     }
 }
-module.exports={getBanner,addBanner,deleteBanner,addOther}
+module.exports={getBanner,showPage,addBanner,deleteBanner,addOther}
