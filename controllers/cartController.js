@@ -352,7 +352,8 @@ const deleteCart = async (req,res,next) => {
       if(cart.products.length === 0){
             const user1 = await Cart.deleteOne({userId})
       }
-      res.redirect('/cart')
+      //res.redirect('/cart')
+      res.status(200).json({ success: true, message: 'Product removed from cart successfully' });
     } catch (error) {
         console.error(error)
         const err = new Error();

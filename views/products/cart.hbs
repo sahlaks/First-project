@@ -173,7 +173,9 @@ body {
 						<a href="#" class="btn" onclick="updateCartQuantity('{{this.product._id}}', -1);return false;">-</a>
 						<input style="width: 50px; text-align:center; font-size:2rem;" name="" class="" id="{{this.product._id}}" value="{{quantity}}" >
 						<a href="#" class="btn" onclick="updateCartQuantity('{{this.product._id}}', 1); return false;">+</a> </div>
-						<p class="btn-area"><a aria-hidden="true" class="fa fa-trash" href="/deleteCart/{{this.product._id}}" onclick="confirmDelete('{{this.product._id}}', event)">Remove</a></p>
+						<p class="btn-area"><a aria-hidden="true" class="fa fa-trash delete-btn" 
+						{{!-- href="/deleteCart/{{this.product._id}}" onclick="confirmDelete('{{this.product._id}}', event)" --}}
+						href="#" data-product-id="{{this.product._id}}">Remove</a></p>
 					</div>
 				</div>
 				{{/each}}
@@ -193,6 +195,44 @@ body {
 	</div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const deleteButtons = document.querySelectorAll('.delete-btn');
+        
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', async (event) => {
+                event.preventDefault();
+                
+                const productId = button.getAttribute('data-product-id');
+                
+                try {
+                    const response = await fetch(`/deleteCart/${productId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Failed to delete product. Status: ${response.status}`);
+                    }
+                    
+                    const responseData = await response.json();
+                    
+                    if (responseData.success) {
+                        Swal.fire('Deleted!', 'Your product has been removed from the cart.', 'success');
+                        // Reload the page or update the cart dynamically based on your requirement
+                        window.location.reload(); // Example: reload the page
+                    } else {
+                        throw new Error(responseData.message);
+                    }
+                } catch (error) {
+                    console.error('Error deleting product:', error);
+                    Swal.fire('Error!', 'Failed to remove product from cart.', 'error');
+                }
+            });
+        });
+    });
+</script>
+
+
+{{!-- <script>
    function confirmDelete(itemId, event) {
     event.preventDefault();
     Swal.fire({
@@ -214,7 +254,7 @@ body {
     });
 
     }
-</script>
+</script> --}}
 
 <script>
 	async function updateCartQuantity(itemId, count) {

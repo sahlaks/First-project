@@ -11,6 +11,8 @@
 <!-- jQuery UI -->
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    
+
 
 </head>
 <body>
@@ -108,7 +110,7 @@ h1 {
         <h1>Sales Report</h1>
 
         <a href="#" class="btn btn-warning" onclick="showYears()">Yearly</a>
-        <a href="#" class="btn btn-warning" onclick="showDates()">Monthly</a>
+        <a href="/admin/getMonthlyReport" class="btn btn-warning" >Monthly</a>
         <a href="#" class="btn btn-warning" onclick="showDate()">Daily</a>
         <a href="#"class="btn btn-warning" onclick="showCustomDates()">Custom</a><br><br>
 
@@ -118,7 +120,7 @@ h1 {
         <input type="date" id="selectedDate" name="selectedDate">
         <button type="submit"  style="height:35px;background-color:#FBD2E0;border: white;" onclick="showDailyReport()">Get Sales</button> 
         </form>
-        <button id="dailyButton" class="btn btn-warning" style="height: 30px; margin-left: 10px;">Download Report</button>
+        {{!-- <button id="dailyButton" class="btn btn-warning" style="height: 30px; margin-left: 10px;">Download Report</button> --}}
         </div>
 
         <div id="customReport" style="display: none;">
@@ -129,17 +131,17 @@ h1 {
             <input type="date" id="end" name="end">
             <button type="submit" style="height:35px;background-color:#FBD2E0;border: white;" onclick="showCustomReport()">Show Custom Report</button>
             </form>
-            <button id="customButton" class="btn btn-warning" style="height: 30px; margin-left: 10px;">Download Report</button>
+            {{!-- <button id="customButton" class="btn btn-warning" style="height: 30px; margin-left: 10px;">Download Report</button> --}}
         </div>
 
-        <div id="monthlyReport" style="display: none;">
+        {{!-- <div id="monthlyReport" style="display: none;">
             <form action="/admin/getMonthlyReport" method="post" >
             <label for="expirationDate" style="">Select Date:</label>
             <input type="date" id="selectedDates" name="selectedDate">
             <button type="submit"  style="height:35px;background-color:#FBD2E0;border: white;" onclick="showMonthlyReport()">Get Sales</button> 
             </form>
             <button id="monthlyButton" class="btn btn-warning" style="height: 30px; margin-left: 10px;">Download Report</button>
-        </div>
+        </div> --}}
 
         <div id="yearlyReport" style="display: none;">
             <form action="/admin/getYearlyReport" method="post" >
@@ -155,12 +157,12 @@ h1 {
              </select>
             <button type="submit"  style="margin-left: 20px; height:35px;background-color:#FBD2E0;border: white;" onclick="showYearlyReport()">Get Sales</button> 
             </form><br>
-            <button id="downloadButton" class="btn btn-warning" style="height: 30px; margin-left: 10px;">Download Report</button>
+            {{!-- <button id="downloadButton" class="btn btn-warning" style="height: 30px; margin-left: 10px;">Download Report</button> --}}
         </div>
 
         <br>
-        <div id="report" style="">
-        <table class="table table-striped" class="table" id="table">
+        <div id="report">
+        <table class="table table-striped"  id="table" border="1">
         <thead class="thead-dark">
         <tr>
             <th scope="col">No.</th>
@@ -195,10 +197,14 @@ h1 {
     
     </tbody>
     </table>
+    <a href="/admin/pdf?type={{type}}&start={{start}}&end={{end}}" class="btn btn-warning" id="downloadPDF" >Download PDF</a>
     </div>
     </div>
     </main>
 </div>
+
+
+
 
 <script>
     async function getSalesDetails() {

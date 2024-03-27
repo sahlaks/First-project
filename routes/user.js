@@ -55,7 +55,7 @@ app.get('/productdetails/:id',verifyLogin,isBlocked,productDetails)
 /*.........................................Cart, Wishlist............................................................*/
 app.post('/addcart/:pid',verifyLogin,isBlocked,addCart)
 app.get('/cart',verifyLogin,isBlocked,cart)
-app.get('/deleteCart/:productId',verifyLogin,isBlocked,deleteCart)  
+app.delete('/deleteCart/:productId',verifyLogin,isBlocked,deleteCart)  
 app.get('/cartChangeQuantity',verifyLogin,updateCart)
 app.get('/cartCount',cartCount)
 

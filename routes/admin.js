@@ -4,7 +4,7 @@ const { verifyAdmin, upload, categoryRules, categValidation, categoryValidation,
 const { addPro, addProduct, addCategory, listCategory, deleteCategory, editCat, editcategory, updateimage, deleteProduct, updatePro, editProduct, editimage, editimages, deleteImage, deleteImages } = require('../controllers/productController');
 const { getCoupon, createNewCoupon, postNewCoupon, editCoupon, deleteCoupon } = require('../controllers/couponController');
 const { getBanner, addBanner, deleteBanner, addOther, showPage } = require('../controllers/bannerController');
-const { salesReport, getSalesReport, getSales, report, customReport, monthlyReport, yearlyReport, yearlyCsv, monthlyCsv, dailyCsv, customCsv } = require('../controllers/salesReportController');
+const { salesReport, getSalesReport, getSales, report, customReport, monthlyReport, yearlyReport, yearlyCsv, monthlyCsv, dailyCsv, customCsv, pdf } = require('../controllers/salesReportController');
 const app = express.Router();
 
 
@@ -19,12 +19,13 @@ app.get('/salesreport',verifyAdmin,salesReport)
 app.get('/getSalesreport',getSalesReport)
 app.post('/getSales',getSales)
 app.post('/customReport',customReport)
-app.post('/getMonthlyReport',monthlyReport)
+app.get('/getMonthlyReport',monthlyReport)
 app.post('/getYearlyReport',yearlyReport)
 app.get('/yearlyReport',yearlyCsv)
 app.get('/monthlyCsv',monthlyCsv)
 app.get('/dailyCsv',dailyCsv)
 app.get('/customCsv',customCsv)
+app.get('/pdf',pdf)
 
 
 
